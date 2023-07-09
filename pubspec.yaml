@@ -43,7 +43,7 @@ dependencies:
   flutter_otp_text_field: ^1.1.0+2
   flutter_svg:
   avatar_stack: ^1.2.0
-  flutter_chat_ui:
+#  flutter_chat_ui:
   file_picker:
   image_picker:
   open_filex:
@@ -51,6 +51,10 @@ dependencies:
   dotted_border: ^2.0.0+3
   contextmenu: ^3.0.0
   path_provider:
+  easy_image_viewer: ^1.2.1
+  audio_waveforms: ^1.0.4
+  chatview:
+    path: ./flutter_chatview
 
 dev_dependencies:
   flutter_test:

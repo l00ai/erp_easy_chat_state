@@ -36,7 +36,7 @@ class ListItem extends StatelessWidget {
       onTap: (){
         //Get.toNamed(Routes.CHAT);
         Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const ChatView(),
+            MaterialPageRoute(builder: (context) => const ChatViewMain(),
             ));
       },
       child: Container(

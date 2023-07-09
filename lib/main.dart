@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
               primaryColor: LightThemeColors.primaryColor,
-              accentColor: LightThemeColors.accentColor,
+              colorScheme: ColorScheme.fromSwatch(accentColor: LightThemeColors.accentColor),
               appBarTheme: const AppBarTheme(
                 elevation: 0
               )
@@ -40,3 +40,4 @@ class MyApp extends StatelessWidget {
         });
   }
 }
+

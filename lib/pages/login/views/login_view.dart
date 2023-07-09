@@ -114,7 +114,7 @@ class _LoginViewState extends State<LoginView> {
                                   effect: ExpandingDotsEffect(
                                     dotHeight: 5,
                                     dotWidth: 20,
-                                    activeDotColor: Theme.of(context).accentColor
+                                    activeDotColor: Theme.of(context).colorScheme.secondary,
                                   ),
                                   onDotClicked: (index){}
                               ),
@@ -167,10 +167,10 @@ class OTPBuild extends StatelessWidget {
         const Spacer(),
         OtpTextField(
           numberOfFields: 4,
-          borderColor: Theme.of(context).accentColor,
+          borderColor: Theme.of(context).colorScheme.secondary,
           //set to true to show as box or false to show as dash
           showFieldAsBox: false,
-          focusedBorderColor: Theme.of(context).accentColor,
+          focusedBorderColor: Theme.of(context).colorScheme.secondary,
           //runs when a code is typed in
           // onCodeChanged: (String code) {
           //   //handle validation or checks here
@@ -201,7 +201,7 @@ class OTPBuild extends StatelessWidget {
             ),
             Text(
               " RESEND CODE",
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: Theme.of(context).accentColor),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: Theme.of(context).colorScheme.secondary),
               textAlign: TextAlign.center,
             ),
           ],

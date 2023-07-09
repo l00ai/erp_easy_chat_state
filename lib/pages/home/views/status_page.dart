@@ -55,10 +55,10 @@ class StatusSection extends StatelessWidget {
                 dashPattern: const [2 , 5],
                 strokeWidth: 2,
                 strokeCap: StrokeCap.round,
-                color: theme.accentColor,
+                color: theme.colorScheme.secondary,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(40),
-                  child: Container(
+                  child: SizedBox(
                     height: 60,
                     width: 60,
                     child: Image.network(image, fit: BoxFit.cover),
@@ -71,8 +71,8 @@ class StatusSection extends StatelessWidget {
                 children: [
                   Text(name, style: const TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.bold),),
                   const SizedBox(height: 7,),
-                  Row(
-                    children: const [
+                  const Row(
+                    children: [
                       Icon(Icons.access_time_filled, size: 15, color: Colors.grey,),
                       SizedBox(width: 4,),
                       Text("Today, 07:00 PM", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w600),),
@@ -81,8 +81,8 @@ class StatusSection extends StatelessWidget {
                 ],
               ),
               const Spacer(),
-              Row(
-                children: const [
+              const Row(
+                children: [
                   Icon(Icons.remove_red_eye_rounded, size: 20, color: Colors.grey,),
                   SizedBox(width: 7,),
                   Text("73", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w600),),
@@ -100,7 +100,7 @@ class StatusSection extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             itemBuilder: (context, index) => Container(
-              margin: EdgeInsets.only(right: 10),
+              margin: const EdgeInsets.only(right: 10),
               width: 100,
               color: Colors.grey,
             ),
@@ -135,10 +135,10 @@ class AddStorySection extends StatelessWidget {
                   dashPattern: const [2 , 5],
                   strokeWidth: 2,
                   strokeCap: StrokeCap.round,
-                  color: theme.accentColor,
+                  color: theme.colorScheme.secondary,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(40),
-                    child: Container(
+                    child: SizedBox(
                       height: 70,
                       width: 70,
                       child: Image.network("https://www.assyst.de/cms/upload/sub/digitalisierung/18-F.jpg"),
@@ -153,7 +153,7 @@ class AddStorySection extends StatelessWidget {
                     height: 24,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      color: theme.accentColor,
+                      color: theme.colorScheme.secondary,
                       border: Border.all(color: Colors.white, width: 2)
                     ),
                     alignment: Alignment.center,
@@ -163,9 +163,9 @@ class AddStorySection extends StatelessWidget {
               ],
             ),
             const SizedBox(width: 17,),
-            Column(
+            const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text("My Status", style: TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.bold),),
                 SizedBox(height: 7,),
                 Text("Tap to add status update", style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w600),),

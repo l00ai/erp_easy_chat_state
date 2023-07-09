@@ -81,19 +81,19 @@ class AboutView extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        const Row(
                           children: [
-                            const SizedBox(
+                            SizedBox(
                               height: 70,
                               width: 70,
                               child: CircleAvatar(
                                 backgroundImage: NetworkImage("https://www.assyst.de/cms/upload/sub/digitalisierung/18-F.jpg"),
                               ),
                             ),
-                            const SizedBox(width: 15,),
+                            SizedBox(width: 15,),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children: [
                                 Text("Jessica", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                                 SizedBox(height: 10,),
                                 Text("At work", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
@@ -160,7 +160,7 @@ class ListItem extends StatelessWidget {
                 height: 40,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(50),
-                    color: theme.accentColor
+                    color: theme.colorScheme.secondary
                 ),
                 child: Icon(icon, color: Colors.white,),
               ),

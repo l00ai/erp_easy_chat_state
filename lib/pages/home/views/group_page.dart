@@ -37,7 +37,7 @@ class ListItem extends StatelessWidget {
     return GestureDetector(
       onTap: (){
         Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const ChatView(),
+            MaterialPageRoute(builder: (context) => const ChatViewMain(),
             ));
       },
       child: Container(

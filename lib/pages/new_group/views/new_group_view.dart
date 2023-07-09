@@ -53,7 +53,7 @@ class _NewGroupViewState extends State<NewGroupView> {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                      color: theme.accentColor,
+                      color: theme.colorScheme.secondary,
                       borderRadius: BorderRadius.circular(28),
                       border: Border.all(color: Colors.white, width: 2)
                   ),
@@ -74,15 +74,15 @@ class _NewGroupViewState extends State<NewGroupView> {
                           decoration: BoxDecoration(
                             color: theme.backgroundColor
                           ),
-                          child: Icon(Icons.camera_alt, color: theme.accentColor, size: 120,),
+                          child: Icon(Icons.camera_alt, color: theme.colorScheme.secondary, size: 120,),
                         ))),
               ),
-              Positioned(
+              const Positioned(
                 bottom: 15,
                 left: 10,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text("Jessica", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),),
                   ],
                 ),
@@ -117,7 +117,7 @@ class _NewGroupViewState extends State<NewGroupView> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text("Participants (0)", style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold, fontSize: 18),),
-                        TextButton(onPressed: (){}, child: Text("Add more", style: TextStyle(color: theme.accentColor),))
+                        TextButton(onPressed: (){}, child: Text("Add more", style: TextStyle(color: theme.colorScheme.secondary),))
                       ],
                     ),
                   ),

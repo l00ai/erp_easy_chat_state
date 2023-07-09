@@ -190,7 +190,7 @@ class ListItem extends StatelessWidget {
                 height: 40,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(50),
-                    color: theme.accentColor
+                    color: theme.colorScheme.secondary
                 ),
                 child: Icon(icon, color: Colors.white,),
               ),

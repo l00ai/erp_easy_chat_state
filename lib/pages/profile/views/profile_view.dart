@@ -56,7 +56,7 @@ class _ProfileViewState extends State<ProfileView> {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                      color: theme.accentColor,
+                      color: theme.colorScheme.secondary,
                       borderRadius: BorderRadius.circular(28),
                       border: Border.all(color: Colors.white, width: 2)),
                   child: Icon(Icons.camera_alt, color: Colors.white, size: 32),
