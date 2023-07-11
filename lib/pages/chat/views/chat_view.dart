@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:chatview/chatview.dart';
 import 'package:easy_image_viewer/easy_image_viewer.dart';
-import 'package:erp_easy_chat_state/data.dart';
-import 'package:erp_easy_chat_state/theme.dart';
+import 'package:erp_easy_chat_state/config/data.dart';
+import 'package:erp_easy_chat_state/config/theme.dart';
 import 'package:flutter/material.dart';
 
 class ChatViewMain extends StatefulWidget {
