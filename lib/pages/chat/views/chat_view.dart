@@ -1,292 +1,287 @@
-
-import 'dart:io';
-
-import 'package:chatview/chatview.dart';
-import 'package:easy_image_viewer/easy_image_viewer.dart';
-import 'package:erp_easy_chat_state/config/data.dart';
-import 'package:erp_easy_chat_state/config/theme.dart';
+import 'dart:math';
+import 'package:audio_waveforms/audio_waveforms.dart';
+import 'package:erp_easy_chat_state/pages/chat/chat_helper/messages_provider.dart';
+import 'package:erp_easy_chat_state/pages/chat/views/message_item.dart';
+import 'package:erp_easy_chat_state/pages/chat/views/record_voice_view.dart';
+import 'package:erp_easy_chat_state/pages/chat/views/replay_item_view.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:swipeable_tile/swipeable_tile.dart';
+import '../chat_helper/recorder_controller_hook.dart';
+import '../model/message.dart';
+import 'input_text.dart';
 
-class ChatViewMain extends StatefulWidget {
+class ChatViewMain extends HookWidget {
   const ChatViewMain({Key? key}) : super(key: key);
 
   @override
-  State<ChatViewMain> createState() => _ChatViewMainState();
+  Widget build(BuildContext context) {
+    final mProvider = Provider.of<MessagesProvider>(context);
+    TextEditingController textEditingController = useTextEditingController();
+    RecorderController record = useRecorderController();
+    final theme = Theme.of(context);
+    final size = MediaQuery.of(context);
+
+    sendMessage(String text, {MessageType messageType = MessageType.text}) {
+      if (text.isEmpty) {
+        return;
+      }
+
+      final Message? tempMessage = mProvider.replayMessage != null
+          ? Message.fromJson(mProvider.replayMessage!.toJson())
+          : null;
+      if (tempMessage != null) {
+        tempMessage.replayMessage = null;
+      }
+
+      final message = Message(
+          text: text,
+          fromMe: true,
+          messageType: messageType,
+          dateTime: "May 11, 05:11 PM",
+          isRead: false,
+          fromId: 0,
+          messageStatus: MessageStatus.sending,
+          replayMessage: tempMessage);
+
+      mProvider.addMessage(message);
+      mProvider.setReplayMessage(null);
+
+      textEditingController.clear();
+    }
+
+    // pick Image and push to chat
+    selectImage() async {
+      final ImagePicker picker = ImagePicker();
+      final XFile? photo = await picker.pickImage(source: ImageSource.gallery);
+      if (photo == null) {
+        return;
+      }
+      // add message to ui
+      sendMessage(photo.path, messageType: MessageType.image);
+    }
+
+    // pick Files and push to chat
+    selectFile() async {
+      FilePickerResult? result = await FilePicker.platform.pickFiles();
+      if (result == null) {
+        return;
+      }
+      // add message to ui
+      sendMessage(result.files.single.path!, messageType: MessageType.file);
+    }
+
+    // stop recording voice message and push to ui
+    Future<String?> stopRecordVoiceMessage() async {
+      if (mProvider.isRecording) {
+        record.reset();
+      }
+      // Stop recording
+      final result = await record.stop(false);
+      // check path is valid and recording already start
+      if (result != null && mProvider.isRecording) {
+        // push message to ui list
+        sendMessage(
+          result,
+          messageType: MessageType.voice,
+        );
+      }
+      mProvider.setIsRecording(false);
+      return result;
+    }
+
+    // when message swipe to replay
+    onSwipe(Message message) {
+      mProvider.setReplayMessage(message);
+    }
+
+    // dismiss recorded voice
+    deleteVoiceRecordPressed() {
+      record.stop();
+      mProvider.setIsRecording(false);
+    }
+
+    // voice message start recoding
+    startRecordVoiceMessage() async {
+      mProvider.setIsRecording(true);
+
+      final appDirectory = await getApplicationDocumentsDirectory();
+      String path =
+          "${appDirectory.path}/audio_${Random().nextInt(999999)}}.m4a";
+
+      // Check and request permission
+      if (await record.checkPermission()) {
+        // Start recording
+        await record.record(path: path);
+      }
+    }
+
+    return Scaffold(
+        backgroundColor: Colors.white,
+        body: Stack(
+          children: [
+            Container(
+              foregroundDecoration: const BoxDecoration(
+                image: DecorationImage(
+                  fit: BoxFit.cover,
+                  opacity: 0.2,
+                  image: AssetImage("assets/images/bg_pattern.png"),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    height: 90.h,
+                    decoration: BoxDecoration(
+                        color: theme.primaryColor,
+                        border: Border.all(color: theme.primaryColor, width: 0),
+                        borderRadius: BorderRadius.only(
+                            bottomRight: Radius.circular(40.r))),
+                  ),
+                  Expanded(
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Positioned(
+                          child: Container(
+                            width: size.size.width * 0.5,
+                            decoration: BoxDecoration(
+                                color: theme.primaryColor,
+                                border: Border.all(
+                                    color: theme.primaryColor, width: 0)),
+                          ),
+                        ),
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(40.r))),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ),
+            Column(
+              children: [
+                SizedBox(
+                  height: 91.h,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      AppBar(
+                        backgroundColor: Colors.transparent,
+                        title: const Text("New Chat"),
+                        actions: [
+                          IconButton(
+                              onPressed: () {}, icon: const Icon(Icons.search))
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Consumer<MessagesProvider>(
+                      builder: (context, value, widget) {
+                    return ListView.builder(
+                      padding:
+                          const EdgeInsets.only(top: 25, right: 20, left: 20),
+                      physics: const BouncingScrollPhysics(),
+                      reverse: true,
+                      itemCount: value.messages.length,
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      itemBuilder: (context, index) => ListItem(
+                          message: value.messages[index], onSwipe: onSwipe, index: index),
+                    );
+                  }),
+                ),
+                Selector<MessagesProvider, Message?>(
+                    selector: (context, provider) => provider.replayMessage,
+                    builder: (context, replayMessage, widget) {
+                      if (replayMessage == null) {
+                        return const SizedBox();
+                      }
+                      return ReplayItemView(
+                          message: replayMessage,
+                          onClose: () {
+                            mProvider.setReplayMessage(null);
+                          });
+                    }),
+                Selector<MessagesProvider, bool>(
+                    selector: (context, provider) => provider.isRecording,
+                    builder: (context, isRecording, widget) {
+                      return AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        child: isRecording
+                            ? RecordVoiceView(
+                                recorderController: record,
+                                stopRecord: stopRecordVoiceMessage,
+                                deletePressed: deleteVoiceRecordPressed,
+                              )
+                            : const SizedBox(),
+                      );
+                    }),
+                Selector<MessagesProvider, Message?>(
+                    selector: (p0, p1) => p1.replayMessage,
+                    builder: (context, replayMessage, widget) {
+                      return InputText(
+                        controller: textEditingController,
+                        sendMessage: sendMessage,
+                        thereReplay: replayMessage != null,
+                        startRecord: startRecordVoiceMessage,
+                        selectImage: selectImage,
+                        selectFile: selectFile,
+                      );
+                    }),
+              ],
+            ),
+          ],
+        ));
+  }
 }
 
-class _ChatViewMainState extends State<ChatViewMain> {
+class ListItem extends StatelessWidget {
+  final Function onSwipe;
+  final Message message;
+  final int index;
 
-  AppTheme theme = LightTheme();
-
-  final currentUser = ChatUser(
-    id: '1',
-    name: 'Flutter',
-    profilePhoto: Data.profileImage,
-  );
-
-
-  final _chatController = ChatController(
-    initialMessageList: Data.messageList,
-    scrollController: ScrollController(),
-    chatUsers: [
-      ChatUser(
-        id: '2',
-        name: 'Loai',
-        profilePhoto: Data.profileImage,
-      ),
-      ChatUser(
-        id: '3',
-        name: 'Ahmed',
-        profilePhoto: Data.profileImage,
-      ),
-      ChatUser(
-        id: '4',
-        name: 'Sami',
-        profilePhoto: Data.profileImage,
-      ),
-      ChatUser(
-        id: '5',
-        name: 'Adi',
-        profilePhoto: Data.profileImage,
-      ),
-    ],
-  );
-
-  void _showHideTypingIndicator() {
-    _chatController.setTypingIndicator = !_chatController.showTypingIndicator;
-  }
-
-  void _onImageTap(String url){
-    ImageProvider? imageProvider;
-    if(url.contains("http")){
-      imageProvider = Image.network(url).image;
-    }else{
-      imageProvider = Image.file(File(url)).image;
-    }
-    showImageViewer(context, imageProvider, onViewerDismissed: () {
-      print("dismissed");
-    });
-  }
-
-
-
-  void _onSendTap(
-      String message,
-      ReplyMessage replyMessage,
-      MessageType messageType,
-      ) {
-    final id = int.parse(Data.messageList.last.id) + 1;
-    _chatController.addMessage(
-      Message(
-        id: id.toString(),
-        createdAt: DateTime.now(),
-        message: message,
-        sendBy: currentUser.id,
-        replyMessage: replyMessage,
-        messageType: messageType,
-      ),
-    );
-    Future.delayed(const Duration(milliseconds: 300), () {
-      _chatController.initialMessageList.last.setStatus =
-          MessageStatus.undelivered;
-    });
-    Future.delayed(const Duration(seconds: 1), () {
-      _chatController.initialMessageList.last.setStatus = MessageStatus.read;
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-  }
+  const ListItem(
+      {Key? key,
+      required this.message,
+      required this.onSwipe,
+      required this.index})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: ChatView(
-        currentUser: currentUser,
-        chatController: _chatController,
-        onSendTap: _onSendTap,
-        featureActiveConfig: const FeatureActiveConfig(
-          enablePagination: true,
-          enableDoubleTapToLike: true,
-        ),
-        chatViewState: ChatViewState.hasMessages,
-        chatViewStateConfig: ChatViewStateConfiguration(
-          loadingWidgetConfig: ChatViewStateWidgetConfiguration(
-            loadingIndicatorColor: theme.outgoingChatBubbleColor,
-          ),
-          onReloadButtonTap: () {},
-        ),
-        typeIndicatorConfig: TypeIndicatorConfiguration(
-          flashingCircleBrightColor: theme.flashingCircleBrightColor,
-          flashingCircleDarkColor: theme.flashingCircleDarkColor,
-        ),
-        appBar: ChatViewAppBar(
-          elevation: theme.elevation,
-          backGroundColor: theme.appBarColor,
-          profilePicture: Data.profileImage,
-          backArrowColor: theme.backArrowColor,
-          chatTitle: "Chat view",
-          chatTitleTextStyle: TextStyle(
-            color: theme.appBarTitleTextStyle,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-            letterSpacing: 0.25,
-          ),
-          userStatus: "online",
-          userStatusTextStyle: const TextStyle(color: Colors.grey),
-          actions: [
-            IconButton(
-              tooltip: 'Toggle TypingIndicator',
-              onPressed: _showHideTypingIndicator,
-              icon: Icon(
-                Icons.keyboard,
-                color: theme.themeIconColor,
-              ),
-            ),
-          ],
-        ),
-        chatBackgroundConfig: ChatBackgroundConfiguration(
-          messageTimeIconColor: theme.messageTimeIconColor,
-          messageTimeTextStyle: TextStyle(color: theme.messageTimeTextColor),
-          defaultGroupSeparatorConfig: DefaultGroupSeparatorConfiguration(
-            textStyle: TextStyle(
-              color: theme.chatHeaderColor,
-              fontSize: 17,
-            ),
-          ),
-          backgroundColor: theme.backgroundColor,
-        ),
-        sendMessageConfig: SendMessageConfiguration(
-          imagePickerIconsConfig: ImagePickerIconsConfiguration(
-            cameraIconColor: theme.cameraIconColor,
-            galleryIconColor: theme.galleryIconColor,
-          ),
-          replyMessageColor: theme.replyMessageColor,
-          defaultSendButtonColor: theme.sendButtonColor,
-          replyDialogColor: theme.replyDialogColor,
-          replyTitleColor: theme.replyTitleColor,
-          textFieldBackgroundColor: theme.textFieldBackgroundColor,
-          closeIconColor: theme.closeIconColor,
-          textFieldConfig: TextFieldConfiguration(
-            compositionThresholdTime: const Duration(seconds: 1),
-            textStyle: TextStyle(color: theme.textFieldTextColor),
-          ),
-          micIconColor: theme.replyMicIconColor,
-          voiceRecordingConfiguration: VoiceRecordingConfiguration(
-            backgroundColor: theme.waveformBackgroundColor,
-            recorderIconColor: theme.recordIconColor,
-            // waveStyle: WaveStyle(
-            //   showMiddleLine: false,
-            //   waveColor: theme.waveColor ?? Colors.white,
-            //   extendWaveform: true,
-            // ),
-          ),
-        ),
-        chatBubbleConfig: ChatBubbleConfiguration(
-          outgoingChatBubbleConfig: ChatBubble(
-            linkPreviewConfig: LinkPreviewConfiguration(
-              backgroundColor: theme.linkPreviewOutgoingChatColor,
-              bodyStyle: theme.outgoingChatLinkBodyStyle,
-              titleStyle: theme.outgoingChatLinkTitleStyle,
-            ),
-            receiptsWidgetConfig:
-            const ReceiptsWidgetConfig(showReceiptsIn: ShowReceiptsIn.all),
-            color: theme.outgoingChatBubbleColor,
-          ),
-          inComingChatBubbleConfig: ChatBubble(
-            linkPreviewConfig: LinkPreviewConfiguration(
-              linkStyle: TextStyle(
-                color: theme.inComingChatBubbleTextColor,
-                decoration: TextDecoration.underline,
-              ),
-              backgroundColor: theme.linkPreviewIncomingChatColor,
-              bodyStyle: theme.incomingChatLinkBodyStyle,
-              titleStyle: theme.incomingChatLinkTitleStyle,
-            ),
-            textStyle: TextStyle(color: theme.inComingChatBubbleTextColor),
-            onMessageRead: (message) {
-              /// send your message reciepts to the other client
-              debugPrint('Message Read');
-            },
-            senderNameTextStyle:
-            TextStyle(color: theme.inComingChatBubbleTextColor),
-            color: theme.inComingChatBubbleColor,
-          ),
-        ),
-        replyPopupConfig: ReplyPopupConfiguration(
-          backgroundColor: theme.replyPopupColor,
-          buttonTextStyle: TextStyle(color: theme.replyPopupButtonColor),
-          topBorderColor: theme.replyPopupTopBorderColor,
-        ),
-        reactionPopupConfig: ReactionPopupConfiguration(
-          shadow: BoxShadow(
-            color:  Colors.grey.shade400,
-            blurRadius: 20,
-          ),
-          backgroundColor: theme.reactionPopupColor,
-        ),
-        messageConfig: MessageConfiguration(
-          messageReactionConfig: MessageReactionConfiguration(
-            backgroundColor: theme.messageReactionBackGroundColor,
-            borderColor: theme.messageReactionBackGroundColor,
-            reactedUserCountTextStyle:
-            TextStyle(color: theme.inComingChatBubbleTextColor),
-            reactionCountTextStyle:
-            TextStyle(color: theme.inComingChatBubbleTextColor),
-            reactionsBottomSheetConfig: ReactionsBottomSheetConfiguration(
-              backgroundColor: theme.backgroundColor,
-              reactedUserTextStyle: TextStyle(
-                color: theme.inComingChatBubbleTextColor,
-              ),
-              reactionWidgetDecoration: BoxDecoration(
-                color: theme.inComingChatBubbleColor,
-                boxShadow: [
-                  BoxShadow(
-                    color:  Colors.grey.shade200,
-                    offset: const Offset(0, 20),
-                    blurRadius: 40,
-                  )
-                ],
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          ),
-          imageMessageConfig: ImageMessageConfiguration(
-            onTap: _onImageTap,
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
-            shareIconConfig: ShareIconConfiguration(
-                defaultIconBackgroundColor: theme.shareIconBackgroundColor,
-                defaultIconColor: theme.shareIconColor,
-                onPressed: (path){
-                  print(path);
-                }
-            ),
-          ),
-        ),
-        profileCircleConfig: const ProfileCircleConfiguration(
-          profileImageUrl: Data.profileImage,
-        ),
-        repliedMessageConfig: RepliedMessageConfiguration(
-          backgroundColor: theme.repliedMessageColor,
-          verticalBarColor: theme.verticalBarColor,
-          repliedMsgAutoScrollConfig: RepliedMsgAutoScrollConfig(
-            enableHighlightRepliedMsg: true,
-            highlightColor: Colors.pinkAccent.shade100,
-            highlightScale: 1.1,
-          ),
-          textStyle: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.25,
-          ),
-          replyTitleTextStyle: TextStyle(color: theme.repliedTitleTextColor),
-        ),
-        swipeToReplyConfig: SwipeToReplyConfiguration(
-          replyIconColor: theme.swipeToReplyIconColor,
-        ),
-      ),
-    );
+    return SwipeableTile(
+        color: Colors.transparent,
+        swipeThreshold: 0.4,
+        isElevated: false,
+        direction: SwipeDirection.startToEnd,
+        onSwiped: (direction) {},
+        confirmSwipe: (direction) async {
+          onSwipe(message);
+          return false;
+        },
+        backgroundBuilder: (context, direction, progress) {
+          return const SizedBox();
+        },
+        key: Key("key_$index"),
+        child: MessageItem(
+          message: message,
+        ));
   }
 }
