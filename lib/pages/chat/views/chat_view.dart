@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:swipeable_tile/swipeable_tile.dart';
+import 'package:tuple/tuple.dart';
 import '../chat_helper/recorder_controller_hook.dart';
 import '../model/message.dart';
 import 'input_text.dart';
@@ -26,6 +27,14 @@ class ChatViewMain extends HookWidget {
     RecorderController record = useRecorderController();
     final theme = Theme.of(context);
     final size = MediaQuery.of(context);
+
+    textEditingController.addListener(() {
+      if(textEditingController.text.trim().isEmpty){
+        mProvider.setIsWriting(false);
+      }else{
+        mProvider.setIsWriting(true);
+      }
+    });
 
     sendMessage(String text, {MessageType messageType = MessageType.text}) {
       if (text.isEmpty) {
@@ -233,13 +242,14 @@ class ChatViewMain extends HookWidget {
                             : const SizedBox(),
                       );
                     }),
-                Selector<MessagesProvider, Message?>(
-                    selector: (p0, p1) => p1.replayMessage,
-                    builder: (context, replayMessage, widget) {
+                Selector<MessagesProvider, Tuple2<Message?, bool>>(
+                    selector: (_, p0) => Tuple2(p0.replayMessage, p0.isWriting),
+                    builder: (context, data, widget) {
                       return InputText(
                         controller: textEditingController,
                         sendMessage: sendMessage,
-                        thereReplay: replayMessage != null,
+                        thereReplay: data.item1 != null,
+                        isWriting: data.item2,
                         startRecord: startRecordVoiceMessage,
                         selectImage: selectImage,
                         selectFile: selectFile,

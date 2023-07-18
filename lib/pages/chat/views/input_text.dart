@@ -8,6 +8,7 @@ class InputText extends StatelessWidget {
   final TextEditingController controller;
   final Function sendMessage;
   final bool thereReplay;
+  final bool isWriting;
   final Function startRecord;
   final Function selectImage;
   final Function selectFile;
@@ -16,6 +17,7 @@ class InputText extends StatelessWidget {
     required this.controller,
     required this.sendMessage,
     required this.thereReplay,
+    required this.isWriting,
     required this.startRecord,
     required this.selectImage,
     required this.selectFile,
@@ -94,21 +96,40 @@ class InputText extends StatelessWidget {
                     color: Colors.grey,
                   ),
                 ),
-                ElevatedButton(
-                  onPressed: () => startRecord(),
-                  style: ButtonStyle(
-                    shape: MaterialStateProperty.all(const CircleBorder()),
-                    padding: MaterialStateProperty.all(const EdgeInsets.all(2)),
-                    backgroundColor: MaterialStateProperty.all(
-                        LightThemeColors.accentColor), // <-- Button color
-                    overlayColor: MaterialStateProperty.resolveWith<Color?>((states) {
-                      if (states.contains(MaterialState.pressed)) {
-                        return Colors.white.withOpacity(0.3); // <-- Splash color
-                      }
-                    }),
-                  ),
-                  child: Icon(Icons.keyboard_voice_outlined, size: 18.h,),
-                ),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: isWriting ? ElevatedButton(
+                    onPressed: () => sendMessage(controller.text),
+                    style: ButtonStyle(
+                      shape: MaterialStateProperty.all(const CircleBorder()),
+                      padding: MaterialStateProperty.all(const EdgeInsets.all(2)),
+                      backgroundColor: MaterialStateProperty.all(
+                          LightThemeColors.accentColor), // <-- Button color
+                      overlayColor: MaterialStateProperty.resolveWith<Color?>((states) {
+                        if (states.contains(MaterialState.pressed)) {
+                          return Colors.white.withOpacity(0.3); // <-- Splash color
+                        }
+                      }),
+                    ),
+                    child: Icon(Icons.send, size: 18.h,),
+                  ) :
+                  ElevatedButton(
+                    onPressed: () => startRecord(),
+                    style: ButtonStyle(
+                      shape: MaterialStateProperty.all(const CircleBorder()),
+                      padding: MaterialStateProperty.all(const EdgeInsets.all(2)),
+                      backgroundColor: MaterialStateProperty.all(
+                          LightThemeColors.accentColor), // <-- Button color
+                      overlayColor: MaterialStateProperty.resolveWith<Color?>((states) {
+                        if (states.contains(MaterialState.pressed)) {
+                          return Colors.white.withOpacity(0.3); // <-- Splash color
+                        }
+                      }),
+                    ),
+                    child: Icon(Icons.keyboard_voice_outlined, size: 18.h,),
+                  )
+                )
+
               ],
             ),
           ),

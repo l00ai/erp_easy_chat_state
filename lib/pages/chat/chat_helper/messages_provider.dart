@@ -48,13 +48,20 @@ class MessagesProvider extends ChangeNotifier {
 
 
   bool _voiceIsRecording = false;
+  bool _isWriting = false;
 
   Message? _replayMessage;
 
   Message? get replayMessage => _replayMessage;
+  bool get isWriting => _isWriting;
 
   setReplayMessage(Message? message){
     _replayMessage = message;
+    notifyListeners();
+  }
+
+  setIsWriting(bool value){
+    _isWriting = value;
     notifyListeners();
   }
 
