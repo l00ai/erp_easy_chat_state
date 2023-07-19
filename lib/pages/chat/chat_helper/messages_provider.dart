@@ -7,6 +7,14 @@ class MessagesProvider extends ChangeNotifier {
 
   final List<Message> _messages = [
     Message(
+        text:
+        "https://file-examples.com/storage/fee472ce6e64b122ba0c8b3/2017/11/file_example_WAV_1MG.wav",
+        fromMe: true,
+        messageType: MessageType.voice,
+        dateTime: "May 11, 05:11 PM",
+        isRead: true,
+        fromId: 0),
+    Message(
         text: "I am good 💐",
         fromMe: true,
         messageType: MessageType.text,
@@ -46,37 +54,33 @@ class MessagesProvider extends ChangeNotifier {
 
   UnmodifiableListView<Message> get messages => UnmodifiableListView(_messages);
 
-
   bool _voiceIsRecording = false;
   bool _isWriting = false;
-
   Message? _replayMessage;
 
   Message? get replayMessage => _replayMessage;
+
   bool get isWriting => _isWriting;
 
-  setReplayMessage(Message? message){
+  bool get isRecording => _voiceIsRecording;
+
+  void setReplayMessage(Message? message) {
     _replayMessage = message;
     notifyListeners();
   }
 
-  setIsWriting(bool value){
+  void setIsWriting(bool value) {
     _isWriting = value;
     notifyListeners();
   }
 
-  bool get isRecording => _voiceIsRecording;
-
-  void setIsRecording(bool val){
+  void setIsRecording(bool val) {
     _voiceIsRecording = val;
     notifyListeners();
   }
 
-  addMessage(Message message){
+  void addMessage(Message message) {
     _messages.insert(0, message);
     notifyListeners();
   }
-
-
-
 }

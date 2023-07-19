@@ -6,27 +6,136 @@ import 'package:erp_easy_chat_state/pages/chat/views/record_voice_view.dart';
 import 'package:erp_easy_chat_state/pages/chat/views/replay_item_view.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:swipeable_tile/swipeable_tile.dart';
 import 'package:tuple/tuple.dart';
-import '../chat_helper/recorder_controller_hook.dart';
 import '../model/message.dart';
 import 'input_text.dart';
 
-class ChatViewMain extends HookWidget {
+
+class ChatViewMain extends StatefulWidget {
   const ChatViewMain({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final mProvider = Provider.of<MessagesProvider>(context);
-    TextEditingController textEditingController = useTextEditingController();
-    RecorderController record = useRecorderController();
-    final theme = Theme.of(context);
-    final size = MediaQuery.of(context);
+  State<ChatViewMain> createState() => _ChatViewMainState();
+}
+
+class _ChatViewMainState extends State<ChatViewMain> {
+
+  late final mProvider ;
+  late TextEditingController textEditingController;
+  late RecorderController record;
+
+
+
+
+  sendMessage(String text, {MessageType messageType = MessageType.text}) {
+    if (text.isEmpty) {
+      return;
+    }
+
+    final Message? tempMessage = mProvider.replayMessage != null
+        ? Message.fromJson(mProvider.replayMessage!.toJson())
+        : null;
+    if (tempMessage != null) {
+      tempMessage.replayMessage = null;
+    }
+
+    final message = Message(
+        text: text,
+        fromMe: true,
+        messageType: messageType,
+        dateTime: "May 11, 05:11 PM",
+        isRead: false,
+        fromId: 0,
+        messageStatus: MessageStatus.sending,
+        replayMessage: tempMessage);
+
+    mProvider.addMessage(message);
+    mProvider.setReplayMessage(null);
+
+    textEditingController.clear();
+  }
+
+  // pick Image and push to chat
+  selectImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? photo = await picker.pickImage(source: ImageSource.gallery);
+    if (photo == null) {
+      return;
+    }
+    // add message to ui
+    sendMessage(photo.path, messageType: MessageType.image);
+  }
+
+  // pick Files and push to chat
+  selectFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    if (result == null) {
+      return;
+    }
+    // add message to ui
+    sendMessage(result.files.single.path!, messageType: MessageType.file);
+  }
+
+  // stop recording voice message and push to ui
+  Future<String?> stopRecordVoiceMessage() async {
+    if (mProvider.isRecording) {
+      record.reset();
+    }
+    // Stop recording
+    final result = await record.stop(false);
+    // check path is valid and recording already start
+    if (result != null && mProvider.isRecording) {
+      // push message to ui list
+      sendMessage(
+        result,
+        messageType: MessageType.voice,
+      );
+    }
+    mProvider.setIsRecording(false);
+    return result;
+  }
+
+  // when message swipe to replay
+  onSwipe(Message message) {
+    mProvider.setReplayMessage(message);
+  }
+
+  // dismiss recorded voice
+  deleteVoiceRecordPressed() {
+    record.stop();
+    mProvider.setIsRecording(false);
+  }
+
+  // voice message start recoding
+  startRecordVoiceMessage() async {
+    mProvider.setIsRecording(true);
+
+    final appDirectory = await getApplicationDocumentsDirectory();
+    String path =
+        "${appDirectory.path}/audio_${Random().nextInt(999999)}.m4a";
+
+    // Check and request permission
+    if (await record.checkPermission()) {
+      // Start recording
+      await record.record(path: path);
+    }
+  }
+
+
+  @override
+  void initState() {
+    mProvider = Provider.of<MessagesProvider>(context);
+    textEditingController = TextEditingController();
+    record = RecorderController()
+      ..androidEncoder = AndroidEncoder.aac
+      ..androidOutputFormat = AndroidOutputFormat.mpeg4
+      ..iosEncoder = IosEncoder.kAudioFormatMPEG4AAC
+      ..sampleRate = 44100;
 
     textEditingController.addListener(() {
       if(textEditingController.text.trim().isEmpty){
@@ -35,101 +144,20 @@ class ChatViewMain extends HookWidget {
         mProvider.setIsWriting(true);
       }
     });
+    super.initState();
+  }
 
-    sendMessage(String text, {MessageType messageType = MessageType.text}) {
-      if (text.isEmpty) {
-        return;
-      }
+  @override
+  void dispose() {
+    record.dispose();
+    textEditingController.removeListener(() { });
+    super.dispose();
+  }
 
-      final Message? tempMessage = mProvider.replayMessage != null
-          ? Message.fromJson(mProvider.replayMessage!.toJson())
-          : null;
-      if (tempMessage != null) {
-        tempMessage.replayMessage = null;
-      }
-
-      final message = Message(
-          text: text,
-          fromMe: true,
-          messageType: messageType,
-          dateTime: "May 11, 05:11 PM",
-          isRead: false,
-          fromId: 0,
-          messageStatus: MessageStatus.sending,
-          replayMessage: tempMessage);
-
-      mProvider.addMessage(message);
-      mProvider.setReplayMessage(null);
-
-      textEditingController.clear();
-    }
-
-    // pick Image and push to chat
-    selectImage() async {
-      final ImagePicker picker = ImagePicker();
-      final XFile? photo = await picker.pickImage(source: ImageSource.gallery);
-      if (photo == null) {
-        return;
-      }
-      // add message to ui
-      sendMessage(photo.path, messageType: MessageType.image);
-    }
-
-    // pick Files and push to chat
-    selectFile() async {
-      FilePickerResult? result = await FilePicker.platform.pickFiles();
-      if (result == null) {
-        return;
-      }
-      // add message to ui
-      sendMessage(result.files.single.path!, messageType: MessageType.file);
-    }
-
-    // stop recording voice message and push to ui
-    Future<String?> stopRecordVoiceMessage() async {
-      if (mProvider.isRecording) {
-        record.reset();
-      }
-      // Stop recording
-      final result = await record.stop(false);
-      // check path is valid and recording already start
-      if (result != null && mProvider.isRecording) {
-        // push message to ui list
-        sendMessage(
-          result,
-          messageType: MessageType.voice,
-        );
-      }
-      mProvider.setIsRecording(false);
-      return result;
-    }
-
-    // when message swipe to replay
-    onSwipe(Message message) {
-      mProvider.setReplayMessage(message);
-    }
-
-    // dismiss recorded voice
-    deleteVoiceRecordPressed() {
-      record.stop();
-      mProvider.setIsRecording(false);
-    }
-
-    // voice message start recoding
-    startRecordVoiceMessage() async {
-      mProvider.setIsRecording(true);
-
-      final appDirectory = await getApplicationDocumentsDirectory();
-      String path =
-          "${appDirectory.path}/audio_${Random().nextInt(999999)}}.m4a";
-
-      // Check and request permission
-      if (await record.checkPermission()) {
-        // Start recording
-        await record.record(path: path);
-      }
-    }
-
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final size = MediaQuery.of(context);
     return Scaffold(
         backgroundColor: Colors.white,
         body: Stack(

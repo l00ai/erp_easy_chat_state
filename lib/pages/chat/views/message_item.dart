@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:logger/logger.dart';
 import '../model/message.dart';
 import 'file_message_item.dart';
 
@@ -72,6 +73,7 @@ class MessageItem extends StatelessWidget {
                       path: message.text,
                       fromMe: message.fromMe,
                       isReplay: isReplay,
+                      key: Key(message.text),
                     ),
                   ),
                 if (message.messageType == MessageType.file)
