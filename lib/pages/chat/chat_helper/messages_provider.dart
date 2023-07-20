@@ -15,6 +15,14 @@ class MessagesProvider extends ChangeNotifier {
         isRead: true,
         fromId: 0),
     Message(
+        text:
+        "https://samplelib.com/lib/preview/mp3/sample-15s.mp3",
+        fromMe: true,
+        messageType: MessageType.voice,
+        dateTime: "May 11, 05:11 PM",
+        isRead: true,
+        fromId: 0),
+    Message(
         text: "I am good 💐",
         fromMe: true,
         messageType: MessageType.text,

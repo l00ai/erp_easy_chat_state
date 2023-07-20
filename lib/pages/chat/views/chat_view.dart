@@ -6,6 +6,7 @@ import 'package:erp_easy_chat_state/pages/chat/views/record_voice_view.dart';
 import 'package:erp_easy_chat_state/pages/chat/views/replay_item_view.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -31,8 +32,8 @@ class _ChatViewMainState extends State<ChatViewMain> {
 
 
 
-
   sendMessage(String text, {MessageType messageType = MessageType.text}) {
+
     if (text.isEmpty) {
       return;
     }
@@ -129,21 +130,24 @@ class _ChatViewMainState extends State<ChatViewMain> {
 
   @override
   void initState() {
-    mProvider = Provider.of<MessagesProvider>(context);
     textEditingController = TextEditingController();
-    record = RecorderController()
-      ..androidEncoder = AndroidEncoder.aac
-      ..androidOutputFormat = AndroidOutputFormat.mpeg4
-      ..iosEncoder = IosEncoder.kAudioFormatMPEG4AAC
-      ..sampleRate = 44100;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      mProvider = Provider.of<MessagesProvider>(context, listen: false);
+      record = RecorderController()
+        ..androidEncoder = AndroidEncoder.aac
+        ..androidOutputFormat = AndroidOutputFormat.mpeg4
+        ..iosEncoder = IosEncoder.kAudioFormatMPEG4AAC
+        ..sampleRate = 44100;
 
-    textEditingController.addListener(() {
-      if(textEditingController.text.trim().isEmpty){
-        mProvider.setIsWriting(false);
-      }else{
-        mProvider.setIsWriting(true);
-      }
+      textEditingController.addListener(() {
+        if(textEditingController.text.trim().isEmpty){
+          mProvider.setIsWriting(false);
+        }else{
+          mProvider.setIsWriting(true);
+        }
+      });
     });
+
     super.initState();
   }
 

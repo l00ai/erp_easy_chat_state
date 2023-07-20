@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:erp_easy_chat_state/config/light_theme_colors.dart';
 import 'package:flutter/cupertino.dart';
@@ -67,7 +68,6 @@ class _VoiceMessageItemState extends State<VoiceMessageItem> {
   bool loading = false;
 
   init() async {
-    Logger().w(widget.path);
     playerController = PlayerController();
 
     if(widget.path.contains("http")){
@@ -75,6 +75,7 @@ class _VoiceMessageItemState extends State<VoiceMessageItem> {
         loading = true;
       });
       path = await downloadAudioFromUrl(widget.path);
+      await playerController.extractWaveformData(path: path!);
       setState(() {
         icon = Icons.play_arrow_outlined;
         loading = false;
@@ -92,15 +93,42 @@ class _VoiceMessageItemState extends State<VoiceMessageItem> {
   Future<String?> downloadAudioFromUrl(String url) async {
     try {
       final dir = await getApplicationDocumentsDirectory();
-      final path = dir.path;
-      final file = File('$path/file.wav');
+      final path = "${dir.path}/voice/";
+
+
+      final voiceDirectory = await Directory(path).create(recursive: true);
+
+      final list = voiceDirectory.listSync();
+
+      final _url = convertUrlToFlatString(url);
+
+      for (var element in list) {
+        if(element.path.contains(_url)){
+          return element.path;
+        }
+      }
+
+      final file = File('$path${convertUrlToFlatString(url)}');
       final response = await http.get(Uri.parse(url));
       await file.writeAsBytes(response.bodyBytes);
+
       return file.path;
-    }catch(e){
+    }catch(e, s){
+      Logger().e(e);
+      Logger().e(s);
       return null;
     }
   }
+
+
+
+  convertUrlToFlatString(String url){
+    return url.replaceAll("/", "\$\$@@_").replaceAll(':', "\$\$\$@@@");
+  }
+
+  // convertTextToUrl(String text){
+  //   return text.replaceAll("\$\$@@_", "/").replaceAll("\$\$\$@@@", ":");
+  // }
 
   @override
   void initState() {
