@@ -59,6 +59,10 @@ dependencies:
   cached_network_image: ^3.2.3
   provider:
   tuple: ^2.0.2
+  appinio_video_player: ^1.2.1
+  video_editor: ^3.0.0
+  flutter_speed_dial: ^7.0.0
+
 
 
 dev_dependencies:

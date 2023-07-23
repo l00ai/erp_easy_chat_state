@@ -95,11 +95,8 @@ class _VoiceMessageItemState extends State<VoiceMessageItem> {
       final dir = await getApplicationDocumentsDirectory();
       final path = "${dir.path}/voice/";
 
-
       final voiceDirectory = await Directory(path).create(recursive: true);
-
       final list = voiceDirectory.listSync();
-
       final _url = convertUrlToFlatString(url);
 
       for (var element in list) {
@@ -107,7 +104,7 @@ class _VoiceMessageItemState extends State<VoiceMessageItem> {
           return element.path;
         }
       }
-
+      
       final file = File('$path${convertUrlToFlatString(url)}');
       final response = await http.get(Uri.parse(url));
       await file.writeAsBytes(response.bodyBytes);

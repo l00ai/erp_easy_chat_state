@@ -8,9 +8,17 @@ class MessagesProvider extends ChangeNotifier {
   final List<Message> _messages = [
     Message(
         text:
-        "https://file-examples.com/storage/fee472ce6e64b122ba0c8b3/2017/11/file_example_WAV_1MG.wav",
+        "https://pngimg.com/d/mario_PNG114.png",
         fromMe: true,
-        messageType: MessageType.voice,
+        messageType: MessageType.file,
+        dateTime: "May 11, 05:11 PM",
+        isRead: true,
+        fromId: 0),
+    Message(
+        text:
+        "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        fromMe: true,
+        messageType: MessageType.video,
         dateTime: "May 11, 05:11 PM",
         isRead: true,
         fromId: 0),

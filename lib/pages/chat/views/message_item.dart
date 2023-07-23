@@ -1,5 +1,6 @@
 import 'package:erp_easy_chat_state/config/light_theme_colors.dart';
 import 'package:erp_easy_chat_state/pages/chat/views/image_message_item.dart';
+import 'package:erp_easy_chat_state/pages/chat/views/video_message_item.dart';
 import 'package:erp_easy_chat_state/pages/chat/views/voice_message_item.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,9 @@ class MessageItem extends StatelessWidget {
         crossAxisAlignment:
             message.fromMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
+          if(message.messageType == MessageType.video)
+            VideoMessageItem(path: message.text, key: Key(message.text),)
+          else
           Container(
             padding: message.messageType == MessageType.voice
                 ? EdgeInsets.zero
@@ -64,6 +68,7 @@ class MessageItem extends StatelessWidget {
                             ? Colors.white
                             : theme.textTheme.bodyLarge!.color),
                   ),
+
                 if (message.messageType == MessageType.image)
                   ImageMessageItem(message: message),
                 if (message.messageType == MessageType.voice)

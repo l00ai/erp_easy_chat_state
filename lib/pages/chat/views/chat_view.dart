@@ -64,12 +64,22 @@ class _ChatViewMainState extends State<ChatViewMain> {
   // pick Image and push to chat
   selectImage() async {
     final ImagePicker picker = ImagePicker();
-    final XFile? photo = await picker.pickImage(source: ImageSource.gallery);
+    final XFile? photo = await picker.pickImage(source: ImageSource.gallery, );
     if (photo == null) {
       return;
     }
     // add message to ui
     sendMessage(photo.path, messageType: MessageType.image);
+  }
+
+  selectVideo() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? video = await picker.pickVideo(source: ImageSource.gallery, );
+    if (video == null) {
+      return;
+    }
+    // add message to ui
+    sendMessage(video.path, messageType: MessageType.video);
   }
 
   // pick Files and push to chat
@@ -284,6 +294,7 @@ class _ChatViewMainState extends State<ChatViewMain> {
                         isWriting: data.item2,
                         startRecord: startRecordVoiceMessage,
                         selectImage: selectImage,
+                        selectVideo: selectVideo,
                         selectFile: selectFile,
                       );
                     }),
